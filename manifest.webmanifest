@@ -1,0 +1,10 @@
+{
+  "name": "Adesiva — Sticker Studio",
+  "short_name": "Adesiva",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8fb",
+  "theme_color": "#fff8fb",
+  "description": "Biblioteca e criação de adesivos para Stories."
+}
