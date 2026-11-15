@@ -134,6 +134,7 @@ async function persist(){try{if(!db)db=await openDB();await new Promise((resolve
 async function loadLibrary(){try{db=await openDB();const saved=await new Promise((resolve,reject)=>{const req=db.transaction("data","readonly").objectStore("data").get("stickers");req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});if(Array.isArray(saved)){const byId=new Map(saved.map(s=>[s.id,s]));stickers=stickers.map(s=>byId.get(s.id)||s);saved.filter(s=>!stickers.some(x=>x.id===s.id)).forEach(s=>stickers.push(s));return;}}catch(e){}try{const saved=JSON.parse(localStorage.getItem("adesiva-stickers-v2")||"[]");if(Array.isArray(saved)&&saved.length){const byId=new Map(saved.map(s=>[s.id,s]));stickers=stickers.map(s=>byId.get(s.id)||s);saved.filter(s=>!stickers.some(x=>x.id===s.id)).forEach(s=>stickers.unshift(s));}}catch(e){}}
 let activeCat="Todos";
 let pendingImageName="",activeElementCat="Todos";
+let favoriteElements=new Set();try{favoriteElements=new Set(JSON.parse(localStorage.getItem("adesiva-element-favorites")||"[]"));}catch(e){}
 const decorativeElements=[
  {id:"flower-daisy",name:"Margarida delicada",cat:"Flores",tags:"flor margarida primavera",svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><g transform="translate(120 112)"><g fill="#fff7fb" stroke="#d99ab4" stroke-width="2"><ellipse cy="-48" ry="31" rx="17"/><ellipse cy="-48" ry="31" rx="17" transform="rotate(45)"/><ellipse cy="-48" ry="31" rx="17" transform="rotate(90)"/><ellipse cy="-48" ry="31" rx="17" transform="rotate(135)"/><ellipse cy="-48" ry="31" rx="17" transform="rotate(180)"/><ellipse cy="-48" ry="31" rx="17" transform="rotate(225)"/><ellipse cy="-48" ry="31" rx="17" transform="rotate(270)"/><ellipse cy="-48" ry="31" rx="17" transform="rotate(315)"/></g><circle r="22" fill="#efc66d"/><circle r="9" fill="#dca64e"/></g><path d="M120 135 Q115 190 85 213 M120 165 Q147 174 166 202" fill="none" stroke="#72977c" stroke-width="6" stroke-linecap="round"/><path d="M105 176 Q64 153 68 190 Q87 207 105 176 M139 181 Q177 157 180 192 Q163 209 139 181" fill="#91b59a"/></svg>'},
  {id:"flower-tulip",name:"Tulipa rosa",cat:"Flores",tags:"flor tulipa",svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><path d="M120 93 C82 49 76 27 88 17 C110 22 119 44 120 65 C128 34 151 15 169 20 C178 48 154 78 120 93Z" fill="#e99ab7" stroke="#c97899" stroke-width="4"/><path d="M120 88 Q119 157 123 222" stroke="#73977c" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M120 165 Q63 120 57 175 Q77 204 120 165 M123 187 Q176 141 185 190 Q165 214 123 187" fill="#8fb49a"/></svg>'},
@@ -155,10 +156,10 @@ function svgData(svg){return "data:image/svg+xml;charset=utf-8,"+encodeURICompon
 function renderElements(){
  const q=document.getElementById("search").value.toLowerCase();
  const sub=document.getElementById("elementFilters");
- const cats=["Todos","Flores","Corações","Borboletas","Brilhos","Decorativos","Procedimentos","Skincare","Fitness"];
+ const cats=["Todos","Favoritos","Flores","Corações","Borboletas","Brilhos","Decorativos","Procedimentos","Skincare","Fitness"];
  sub.hidden=false;
  sub.innerHTML=cats.map(c=>'<button type="button" data-element-cat="'+c+'" class="'+(activeElementCat===c?'active':'')+'">'+c+'</button>').join("");
- const list=decorativeElements.filter(e=>(activeElementCat==="Todos"||e.cat===activeElementCat)&&(e.name+" "+e.cat+" "+e.tags).toLowerCase().includes(q));
+ const list=decorativeElements.filter(e=>(activeElementCat==="Todos"||(activeElementCat==="Favoritos"?favoriteElements.has(e.id):e.cat===activeElementCat))&&(e.name+" "+e.cat+" "+e.tags).toLowerCase().includes(q));
  grid.innerHTML="";document.getElementById("count").textContent=list.length+" elementos";
  if(!list.length){grid.innerHTML='<div class="empty">Nenhum elemento encontrado. Tente outra busca.</div>';return;}
  list.forEach(e=>{
@@ -166,10 +167,11 @@ function renderElements(){
   const art=document.createElement("div");art.className="element-preview";art.innerHTML=e.svg;
   const name=document.createElement("div");name.className="name";name.textContent=e.name;
   const actions=document.createElement("div");actions.className="element-actions";
+  const fav=document.createElement("button");fav.textContent=favoriteElements.has(e.id)?"★":"☆";fav.title="Favoritar elemento";fav.setAttribute("aria-label","Favoritar "+e.name);fav.onclick=()=>{if(favoriteElements.has(e.id))favoriteElements.delete(e.id);else favoriteElements.add(e.id);try{localStorage.setItem("adesiva-element-favorites",JSON.stringify([...favoriteElements]));}catch(err){}renderElements();};
   const use=document.createElement("button");use.className="use";use.textContent="＋ Usar";
   use.onclick=()=>openElementInEditor(e);
   const copy=document.createElement("button");copy.textContent="▢ Copiar";copy.onclick=()=>copySticker({id:e.id,name:e.name,cat:"Decorativos",imageData:svgData(e.svg),imageW:220});
-  actions.append(use,copy);card.append(art,name,actions);grid.append(card);
+  actions.append(fav,use,copy);card.append(art,name,actions);grid.append(card);
  });
 }
 function openElementInEditor(e){
