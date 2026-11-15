@@ -42,7 +42,7 @@
   <p class="intro">Escolha uma figurinha e toque em <b>Copiar</b>. Depois, experimente colar no Instagram Stories. O fundo quadriculado é apenas uma prévia da transparência.</p>
   <input id="search" class="search" type="search" placeholder="⌕  Buscar adesivos..." aria-label="Buscar adesivos">
   <nav class="filters" id="filters">
-    <button class="active" data-cat="Todos">Todos</button><button data-cat="Aesthetic">♡ Aesthetic</button><button data-cat="Profissional">✧ Profissional</button><button data-cat="Frases">Aa Frases</button>
+    <button class="active" data-cat="Todos">Todos</button><button data-cat="Cristão">✧ Cristão</button><button data-cat="Saudações">☀ Bom dia/boa tarde</button><button data-cat="Dias da semana">Dias da semana</button><button data-cat="Procedimentos">♡ Procedimentos</button><button data-cat="Fitness">Fitness</button><button data-cat="Aesthetic">Aesthetic</button><button data-cat="Profissional">Profissional</button><button data-cat="Frases">Frases</button>
   </nav>
   <div class="sectionhead"><strong>Minha coleção</strong><span class="count" id="count"></span></div>
   <section class="grid" id="grid" aria-live="polite"></section>
@@ -74,7 +74,7 @@
   <label class="field"><span>Cor da sombra</span><input id="shadowColor" type="color" value="#765365"></label>
   <label class="field"><span>Desfoque da sombra</span><input id="shadowBlur" type="range" min="0" max="30" value="8"></label>
   <label class="field"><span>Distância da sombra</span><input id="shadowOffset" type="range" min="0" max="30" value="5"></label>
-  <label class="field"><span>Categoria</span><select id="newCategory"><option>Cristão</option><option>Aesthetic</option><option>Profissional</option><option>Frases</option></select></label>
+  <label class="field"><span>Categoria</span><select id="newCategory"><option>Cristão</option><option>Saudações</option><option>Dias da semana</option><option>Procedimentos</option><option>Fitness</option><option>Aesthetic</option><option>Profissional</option><option>Frases</option></select></label>
   <div class="dialogbuttons"><button id="cancel">Cancelar</button><button class="primary" id="save">Adicionar à biblioteca</button></div>
 </dialog>
 <script>
@@ -92,11 +92,47 @@ let stickers = [
  {id:11,name:"Feito com carinho",text:"Feito com carinho",emoji:"💌",cat:"Frases",color:"#965a78",outline:"#fff",font:"serif"},
  {id:12,name:"Você consegue",text:"Você consegue!",emoji:"🦋",cat:"Frases",color:"#965a78",outline:"#fff",font:"bold"}
 ];
+
+ {id:"bible-1",name:"O Senhor é meu pastor",text:"O Senhor é meu pastor;\nnada me faltará.\nSalmos 23:1",cat:"Cristão",color:"#72566b",font:"serif",size:48},
+ {id:"bible-2",name:"Tudo posso",text:"Tudo posso naquele\nque me fortalece.\nFilipenses 4:13",cat:"Cristão",color:"#8c5574",font:"script",size:48},
+ {id:"bible-3",name:"Não temas",text:"Não temas, porque\neu sou contigo.\nIsaías 41:10",cat:"Cristão",color:"#6e657e",font:"elegant2",size:48},
+ {id:"bible-4",name:"Aquietai-vos",text:"Aquietai-vos e sabei\nque eu sou Deus.\nSalmos 46:10",cat:"Cristão",color:"#8c5574",font:"serif",size:48},
+ {id:"bible-5",name:"O amor tudo suporta",text:"O amor é paciente,\no amor é bondoso.\n1 Coríntios 13:4",cat:"Cristão",color:"#a65f80",font:"hand2",size:46},
+ {id:"bible-6",name:"Entrega o teu caminho",text:"Entrega o teu caminho\nao Senhor.\nSalmos 37:5",cat:"Cristão",color:"#806078",font:"script",size:47},
+ {id:"bible-7",name:"A alegria do Senhor",text:"A alegria do Senhor\né a nossa força.\nNeemias 8:10",cat:"Cristão",color:"#a65f80",font:"round",size:47},
+ {id:"bible-8",name:"Buscai primeiro",text:"Buscai primeiro\no Reino de Deus.\nMateus 6:33",cat:"Cristão",color:"#806078",font:"serif",size:48},
+ {id:"greet-1",name:"Bom dia — manuscrita",text:"Bom dia!",cat:"Saudações",color:"#a65f80",font:"script",size:76},
+ {id:"greet-2",name:"Bom dia — elegante",text:"BOM DIA",cat:"Saudações",color:"#8c5574",font:"elegant2",size:70},
+ {id:"greet-3",name:"Bom dia — moderna",text:"bom dia ☀",cat:"Saudações",color:"#bd7b91",font:"round",size:66},
+ {id:"greet-4",name:"Boa tarde — manuscrita",text:"Boa tarde!",cat:"Saudações",color:"#a65f80",font:"hand2",size:70},
+ {id:"greet-5",name:"Boa tarde — clássica",text:"BOA TARDE",cat:"Saudações",color:"#806078",font:"serif",size:64},
+ {id:"greet-6",name:"Boa tarde — divertida",text:"boa tarde ✨",cat:"Saudações",color:"#bd7b91",font:"display",size:66},
+ {id:"day-1",name:"Segunda-feira",text:"Segunda-feira",cat:"Dias da semana",color:"#a65f80",font:"script",size:58},
+ {id:"day-2",name:"Terça-feira",text:"Terça-feira",cat:"Dias da semana",color:"#8c5574",font:"serif",size:58},
+ {id:"day-3",name:"Quarta-feira",text:"Quarta-feira",cat:"Dias da semana",color:"#bd7b91",font:"round",size:56},
+ {id:"day-4",name:"Quinta-feira",text:"Quinta-feira",cat:"Dias da semana",color:"#806078",font:"elegant2",size:56},
+ {id:"day-5",name:"Sexta-feira",text:"Sexta-feira",cat:"Dias da semana",color:"#a65f80",font:"hand2",size:58},
+ {id:"day-6",name:"Sábado",text:"Sábado",cat:"Dias da semana",color:"#8c5574",font:"display",size:64},
+ {id:"day-7",name:"Domingo",text:"Domingo",cat:"Dias da semana",color:"#bd7b91",font:"script",size:64},
+ {id:"proc-1",name:"Botox",text:"Botox",cat:"Procedimentos",color:"#8c5574",font:"elegant2",size:76},
+ {id:"proc-2",name:"Limpeza de pele",text:"Limpeza de pele",cat:"Procedimentos",color:"#8c5574",font:"script",size:58},
+ {id:"proc-3",name:"Tratamento de vasinhos",text:"Tratamento de\nvasinhos",cat:"Procedimentos",color:"#a65f80",font:"serif",size:52},
+ {id:"proc-4",name:"Microvasos injetável",text:"Procedimento\ninjetável para\nmicrovasos",cat:"Procedimentos",color:"#8c5574",font:"round",size:44},
+ {id:"proc-5",name:"Tratamento de melasma",text:"Tratamento de\nmelasma",cat:"Procedimentos",color:"#a65f80",font:"elegant2",size:52},
+ {id:"proc-6",name:"Manchas na pele",text:"Tratamento de\nmanchas",cat:"Procedimentos",color:"#8c5574",font:"hand2",size:52},
+ {id:"proc-7",name:"Cicatrizes de acne",text:"Cicatrizes\nde acne",cat:"Procedimentos",color:"#a65f80",font:"serif",size:54},
+ {id:"fit-1",name:"Treino pago",text:"Treino pago!\nAgora é só constância.",cat:"Fitness",color:"#72566b",font:"bold",size:48},
+ {id:"fit-2",name:"Projeto em movimento",text:"Um dia de cada vez.\nUm treino de cada vez.",cat:"Fitness",color:"#8c5574",font:"round",size:46},
+ {id:"fit-3",name:"Foco",text:"FOCO • FORÇA • FÉ",cat:"Fitness",color:"#a65f80",font:"bold",size:48},
+ {id:"fit-4",name:"Endorfina",text:"Minha terapia\ntem endorfina.",cat:"Fitness",color:"#8c5574",font:"script",size:52},
+ {id:"fit-5",name:"Feito é melhor",text:"Feito é melhor\nque perfeito.",cat:"Fitness",color:"#a65f80",font:"serif",size:52},
+ {id:"fit-6",name:"Dia de perna",text:"DIA DE PERNA 🍑",cat:"Fitness",color:"#8c5574",font:"bold",size:48},
+
 let editingId=null,pendingImageData=null;
 let db=null;
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open("AdesivaDB",1);req.onupgradeneeded=()=>req.result.createObjectStore("data");req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
 async function persist(){try{if(!db)db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction("data","readwrite");tx.objectStore("data").put(stickers,"stickers");tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});try{localStorage.setItem("adesiva-stickers-v2",JSON.stringify(stickers));}catch(e){}statusEl.textContent="Biblioteca salva neste aparelho.";}catch(e){try{localStorage.setItem("adesiva-stickers-v2",JSON.stringify(stickers));}catch(err){statusEl.textContent="Não foi possível guardar. O armazenamento do aparelho pode estar cheio.";}}}
-async function loadLibrary(){try{db=await openDB();const saved=await new Promise((resolve,reject)=>{const req=db.transaction("data","readonly").objectStore("data").get("stickers");req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});if(Array.isArray(saved)){stickers=saved;return;}}catch(e){}try{const saved=JSON.parse(localStorage.getItem("adesiva-stickers-v2")||"[]");if(Array.isArray(saved)&&saved.length){const byId=new Map(saved.map(s=>[s.id,s]));stickers=stickers.map(s=>byId.get(s.id)||s);saved.filter(s=>!stickers.some(x=>x.id===s.id)).forEach(s=>stickers.unshift(s));}}catch(e){}}
+async function loadLibrary(){try{db=await openDB();const saved=await new Promise((resolve,reject)=>{const req=db.transaction("data","readonly").objectStore("data").get("stickers");req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});if(Array.isArray(saved)){const byId=new Map(saved.map(s=>[s.id,s]));stickers=stickers.map(s=>byId.get(s.id)||s);saved.filter(s=>!stickers.some(x=>x.id===s.id)).forEach(s=>stickers.push(s));return;}}catch(e){}try{const saved=JSON.parse(localStorage.getItem("adesiva-stickers-v2")||"[]");if(Array.isArray(saved)&&saved.length){const byId=new Map(saved.map(s=>[s.id,s]));stickers=stickers.map(s=>byId.get(s.id)||s);saved.filter(s=>!stickers.some(x=>x.id===s.id)).forEach(s=>stickers.unshift(s));}}catch(e){}}
 let activeCat="Todos";
 const grid=document.getElementById("grid"),statusEl=document.getElementById("status");
 async function drawSticker(canvas,s){
