@@ -90,9 +90,7 @@ let stickers = [
  {id:9,name:"Últimas vagas",text:"ÚLTIMAS VAGAS",emoji:"💗",cat:"Profissional",color:"#8c4f6c",outline:"#fff",font:"bold"},
  {id:10,name:"Um dia de cada vez",text:"um dia de cada vez",emoji:"♡",cat:"Frases",color:"#965a78",outline:"#fff",font:"script"},
  {id:11,name:"Feito com carinho",text:"Feito com carinho",emoji:"💌",cat:"Frases",color:"#965a78",outline:"#fff",font:"serif"},
- {id:12,name:"Você consegue",text:"Você consegue!",emoji:"🦋",cat:"Frases",color:"#965a78",outline:"#fff",font:"bold"}
-];
-
+ {id:12,name:"Você consegue",text:"Você consegue!",emoji:"🦋",cat:"Frases",color:"#965a78",outline:"#fff",font:"bold"},
  {id:"bible-1",name:"O Senhor é meu pastor",text:"O Senhor é meu pastor;\nnada me faltará.\nSalmos 23:1",cat:"Cristão",color:"#72566b",font:"serif",size:48},
  {id:"bible-2",name:"Tudo posso",text:"Tudo posso naquele\nque me fortalece.\nFilipenses 4:13",cat:"Cristão",color:"#8c5574",font:"script",size:48},
  {id:"bible-3",name:"Não temas",text:"Não temas, porque\neu sou contigo.\nIsaías 41:10",cat:"Cristão",color:"#6e657e",font:"elegant2",size:48},
@@ -126,8 +124,8 @@ let stickers = [
  {id:"fit-3",name:"Foco",text:"FOCO • FORÇA • FÉ",cat:"Fitness",color:"#a65f80",font:"bold",size:48},
  {id:"fit-4",name:"Endorfina",text:"Minha terapia\ntem endorfina.",cat:"Fitness",color:"#8c5574",font:"script",size:52},
  {id:"fit-5",name:"Feito é melhor",text:"Feito é melhor\nque perfeito.",cat:"Fitness",color:"#a65f80",font:"serif",size:52},
- {id:"fit-6",name:"Dia de perna",text:"DIA DE PERNA 🍑",cat:"Fitness",color:"#8c5574",font:"bold",size:48},
-
+ {id:"fit-6",name:"Dia de perna",text:"DIA DE PERNA 🍑",cat:"Fitness",color:"#8c5574",font:"bold",size:48}
+];
 let editingId=null,pendingImageData=null;
 let db=null;
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open("AdesivaDB",1);req.onupgradeneeded=()=>req.result.createObjectStore("data");req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
