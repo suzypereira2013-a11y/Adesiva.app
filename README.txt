@@ -18,3 +18,16 @@ Publicação:
 3. Abra o endereço no Safari do iPhone > Compartilhar > Adicionar à Tela de Início.
 
 A cópia de imagens depende do suporte do navegador e do iOS/Safari. O botão PNG é uma alternativa quando a colagem direta não estiver disponível.
+
+ACERVO DE ARQUIVOS SVG:
+Os elementos também estão salvos individualmente no GitHub, com fundo transparente e formato vetorial:
+- assets/stickers/flores/: margarida, tulipa, ramo e folhas.
+- assets/stickers/coracoes/: coração rosa e contornado.
+- assets/stickers/borboletas/: borboleta delicada.
+- assets/stickers/brilhos/: brilhos mágicos e estrela.
+- assets/stickers/decorativos/: laço.
+- assets/stickers/procedimentos/: seringa estética.
+- assets/stickers/skincare/: pote de skincare, máscara facial e gota de hidratação.
+- assets/stickers/fitness/: halter fitness.
+
+Os SVGs são arquivos independentes no repositório e podem ser ampliados sem perda de qualidade. A aba Elementos do editor já apresenta a coleção vetorial integrada.
