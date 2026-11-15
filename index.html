@@ -81,16 +81,16 @@ let editingId=null,pendingImageData=null;
 function persist(){try{localStorage.setItem("adesiva-stickers-v2",JSON.stringify(stickers));}catch(e){statusEl.textContent="Não foi possível guardar as alterações neste aparelho.";}}
 let activeCat="Todos";
 const grid=document.getElementById("grid"),statusEl=document.getElementById("status");
-function drawSticker(canvas,s){
+async function drawSticker(canvas,s){
  const ctx=canvas.getContext("2d"),w=600,h=420;canvas.width=w;canvas.height=h;ctx.clearRect(0,0,w,h);
  const family=s.font==="serif"?"Georgia,serif":s.font==="bold"?"Arial Black,Arial,sans-serif":s.font==="sans"?"Arial,sans-serif":"cursive";
  const text=s.text||"Seu adesivo",fontSize=Math.min(74,Math.max(40,4200/Math.max(text.length,12)));
  ctx.textAlign="center";ctx.textBaseline="middle";
- ctx.font="76px Apple Color Emoji,Segoe UI Emoji";ctx.fillText(s.emoji||"♡",w/2,92);
+ if(s.imageData){try{const img=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=s.imageData;});const scale=Math.min(230/img.width,190/img.height);const iw=img.width*scale,ih=img.height*scale;ctx.drawImage(img,(w-iw)/2,12+(190-ih)/2,iw,ih);}catch(e){}}else{ctx.font="76px Apple Color Emoji,Segoe UI Emoji";ctx.fillText(s.emoji||"♡",w/2,92);}
  ctx.font=(s.font==="bold"?"bold ":"")+fontSize+"px "+family;
- ctx.lineJoin="round";ctx.lineWidth=24;ctx.strokeStyle="#fff";ctx.strokeText(text,w/2,228,540);
+ ctx.lineJoin="round";ctx.lineWidth=24;ctx.strokeStyle="#fff";ctx.strokeText(text,w/2,s.imageData?285:228,540);
  ctx.lineWidth=7;ctx.strokeStyle=s.outline||"#e9a9c2";ctx.strokeText(text,w/2,228,540);
- ctx.fillStyle=s.color||"#965a78";ctx.fillText(text,w/2,228,540);
+ ctx.fillStyle=s.color||"#965a78";ctx.fillText(text,w/2,s.imageData?285:228,540);
  ctx.font="42px Georgia,serif";ctx.fillStyle=s.outline||"#e9a9c2";ctx.fillText("♡",w/2,330);
 }
 function render(){
@@ -111,7 +111,7 @@ function render(){
  });
 }
 async function blobFor(s){
- const canvas=document.createElement("canvas");drawSticker(canvas,s);
+ const canvas=document.createElement("canvas");await drawSticker(canvas,s);
  return await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
 }
 async function copySticker(s){
