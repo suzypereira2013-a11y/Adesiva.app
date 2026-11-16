@@ -183,7 +183,7 @@ const decorativeElements=[
  {id:"leg-spider-veins",name:"Ilustração de vasinhos",cat:"Procedimentos",tags:"vasinhos microvasos pernas tratamento vascular estética",svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><path d="M79 20 C69 65 82 104 77 143 C73 177 62 202 65 222 L111 222 C117 188 122 163 120 133 C118 97 133 61 128 20Z" fill="#eeeeee" stroke="#999999" stroke-width="4"/><path d="M145 20 C139 65 151 102 148 143 C145 178 135 199 138 222 L184 222 C189 186 194 160 190 130 C185 93 199 56 192 20Z" fill="#eeeeee" stroke="#999999" stroke-width="4"/><g fill="none" stroke="#b77b9c" stroke-width="3" stroke-linecap="round"><path d="M91 105 L104 119 L94 135 L109 148 L99 165 M104 119 L119 110 M94 135 L81 145 M160 112 L174 126 L162 141 L177 155 L166 172 M174 126 L188 117 M162 141 L149 151"/></g><g fill="#d98ca8"><circle cx="104" cy="119" r="4"/><circle cx="94" cy="135" r="4"/><circle cx="174" cy="126" r="4"/><circle cx="162" cy="141" r="4"/></g></svg>'}
 
 ];
-function svgData(svg){return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);}
+function svgData(svg){const mono=svg.replace(/#[0-9a-fA-F]{6}/g,h=>{const n=parseInt(h.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,v=Math.round(.299*r+.587*g+.114*b);return "#"+[v,v,v].map(x=>x.toString(16).padStart(2,"0")).join("");});return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(mono);}
 function renderElements(){
  const q=document.getElementById("search").value.toLowerCase();
  const sub=document.getElementById("elementFilters");
