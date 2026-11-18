@@ -200,6 +200,10 @@ async function loadLibrary(){
  try{db=await openDB();const saved=await new Promise((resolve,reject)=>{const req=db.transaction("data","readonly").objectStore("data").get("stickers");req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});if(Array.isArray(saved))sources.push(saved);}catch(e){}
  try{const saved=JSON.parse(localStorage.getItem("adesiva-stickers-v2")||"[]");if(Array.isArray(saved))sources.push(saved);}catch(e){}
  try{deletedStickerIds=new Set(JSON.parse(localStorage.getItem("adesiva-deleted-stickers")||"[]"));}catch(e){deletedStickerIds=new Set();}
+ // Garante a presença dos 11 adesivos-base da coleção Fitness, mesmo se versões anteriores os marcaram como excluídos.
+ const fitnessCoreIds=["fit-focus","fit-treininho","fit-endorfinada","fit-bomdia-treino","fit-terapia","fit-topico","fit-pular","fit-vibe","fit-corpo","fit-foto","fit-pago"];
+ let restoredFitness=false;for(const id of fitnessCoreIds)if(deletedStickerIds.delete(id))restoredFitness=true;
+ if(restoredFitness){try{localStorage.setItem("adesiva-deleted-stickers",JSON.stringify([...deletedStickerIds]));}catch(e){}}
  const removedIds=new Set(["fit-emoji-woman","fit-emoji-man","fit-emoji-lifter","fit-emoji-muscle","fit-kettlebell-svg","fit-bora-treinar-black","fit-mais-forca-black",...deletedStickerIds]);
  const byId=new Map();
  for(const list of sources)for(const item of list)if(item&&item.id!=null&&item.cat!=="Decorativos"&&!removedIds.has(item.id))byId.set(item.id,item);
