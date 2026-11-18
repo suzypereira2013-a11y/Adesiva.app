@@ -95,13 +95,12 @@ function fitnessSvg(kind){
 function fitnessSvgData(kind){return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(fitnessSvg(kind));}
 
 function fitnessPhraseSvg(kind){
- const phrase=kind==="bora"?"BORA TREINAR":"MAIS FORÇA, POR FAVOR";
  const main=kind==="bora"?"BORA":"MAIS FORÇA";
  const sub=kind==="bora"?"TREINAR":"POR FAVOR";
- const dumbbell='<g transform="translate(0 0) rotate(-13 300 116)" stroke-linejoin="round"><rect x="194" y="91" width="212" height="34" rx="17" fill="#aeb4bd" stroke="#f8f8f8" stroke-width="7"/><rect x="142" y="54" width="65" height="108" rx="17" fill="#30343b" stroke="#f8f8f8" stroke-width="8"/><rect x="393" y="54" width="65" height="108" rx="17" fill="#30343b" stroke="#f8f8f8" stroke-width="8"/><rect x="116" y="72" width="31" height="72" rx="10" fill="#e66da2" stroke="#fff" stroke-width="7"/><rect x="453" y="72" width="31" height="72" rx="10" fill="#e66da2" stroke="#fff" stroke-width="7"/><path d="M158 70v76M409 70v76" stroke="#777f8a" stroke-width="5" opacity=".8"/></g>';
+ const dumbbell='<g transform="rotate(-13 300 116)" stroke-linejoin="round"><rect x="194" y="91" width="212" height="34" rx="17" fill="#aeb4bd" stroke="#ffffff" stroke-width="7"/><rect x="142" y="54" width="65" height="108" rx="17" fill="#30343b" stroke="#ffffff" stroke-width="8"/><rect x="393" y="54" width="65" height="108" rx="17" fill="#30343b" stroke="#ffffff" stroke-width="8"/><rect x="116" y="72" width="31" height="72" rx="10" fill="#e66da2" stroke="#ffffff" stroke-width="7"/><rect x="453" y="72" width="31" height="72" rx="10" fill="#e66da2" stroke="#ffffff" stroke-width="7"/></g>';
  const titleSize=kind==="bora"?78:64;
  const subSize=kind==="bora"?72:45;
- return '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#202126"/><stop offset="1" stop-color="#050505"/></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feGaussianBlur stdDeviation="7"/></filter></defs><rect x="32" y="32" width="536" height="356" rx="42" fill="#000" opacity=".65" filter="url(#shadow)"/><rect x="28" y="25" width="544" height="356" rx="38" fill="url(#bg)" stroke="#f7f7f7" stroke-width="5"/><path d="M54 54h492" stroke="#e66da2" stroke-width="7" stroke-linecap="round"/>'+dumbbell+'<text x="300" y="258" text-anchor="middle" fill="#fff" font-family="Impact, Haettenschweiler, Arial Narrow, sans-serif" font-size="'+titleSize+'" font-weight="900" letter-spacing="1.5">'+main+'</text><text x="300" y="326" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="'+subSize+'" font-weight="900" letter-spacing="2">'+sub+'</text><path d="M100 350h400" stroke="#e66da2" stroke-width="5" stroke-linecap="round"/></svg>';
+ return '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420"><defs><filter id="outline" x="-20%" y="-20%" width="140%" height="150%"><feMorphology in="SourceAlpha" operator="dilate" radius="3" result="d"/><feFlood flood-color="#161616" result="c"/><feComposite in="c" in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+dumbbell+'<text x="300" y="258" text-anchor="middle" fill="#ffffff" stroke="#161616" stroke-width="3" paint-order="stroke" font-family="Impact, Haettenschweiler, Arial Narrow, sans-serif" font-size="'+titleSize+'" font-weight="900" letter-spacing="1.5">'+main+'</text><text x="300" y="326" text-anchor="middle" fill="#ffffff" stroke="#161616" stroke-width="2.5" paint-order="stroke" font-family="Arial, sans-serif" font-size="'+subSize+'" font-weight="900" letter-spacing="2">'+sub+'</text></svg>';
 }
 function fitnessPhraseData(kind){return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(fitnessPhraseSvg(kind));}
 
@@ -317,22 +316,13 @@ document.getElementById("removeBg").onclick=async()=>{
    while(head<tail){const i=queue[head++];const j=i*4;p[j+3]=0;const x=i%w,y=(i/w)|0;if(x)add(i-1);if(x<w-1)add(i+1);if(y)add(i-w);if(y<h-1)add(i+w);}
   }
   clearQueue();
-  // Segunda passada: encontra ilhas internas da mesma cor do fundo,
-  // como os espaços fechados dentro de letras e pequenos caracteres.
-  for(let i=0;i<w*h;i++){
-   if(seen[i])continue;
-   const j=i*4;
-   if(p[j+3]===0)continue;
-   const dr=p[j]-bg[0],dg=p[j+1]-bg[1],db=p[j+2]-bg[2];
-   if(dr*dr+dg*dg+db*db<tolerance*tolerance*2)add(i);
-   if(tail>head)clearQueue();
-  }
+  // Mantém apenas a remoção conectada às bordas para proteger os detalhes internos da imagem.
   cx.putImageData(d,0,0);
   previousImageBeforeBgRemoval=pendingImageData;
   pendingImageData=cv.toDataURL("image/png");editingDraft.imageData=pendingImageData;
   document.getElementById("removeImage").checked=false;
   document.getElementById("undoBg").disabled=false;
-  document.getElementById("imageHint").textContent="Fundo externo e áreas internas semelhantes ao fundo removidos. Confira os detalhes; use Desfazer se necessário.";
+  document.getElementById("imageHint").textContent="Fundo conectado às bordas removido. Os detalhes internos foram preservados; use Desfazer se necessário.";
   drawEditorPreview();statusEl.textContent="Remoção aplicada. Você pode desfazer.";
  }catch(e){statusEl.textContent=e.message||"Não foi possível remover o fundo desta imagem.";}
 };
