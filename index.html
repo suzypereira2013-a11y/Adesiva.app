@@ -291,9 +291,9 @@ async function removeColorAt(clientX,clientY){
   const im=await new Promise((resolve,reject)=>{const z=new Image();z.onload=()=>resolve(z);z.onerror=reject;z.src=pendingImageData;});
   const maxW=editingDraft.imageW||Number(document.getElementById("imageSize").value)||190;
   const scale=Math.min(maxW/im.width,maxW/im.height),iw=im.width*scale,ih=im.height*scale;
-  const ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??12;
+  const ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??(12+(190-ih)/2);
   const sx=Math.floor((px-ix)*im.width/iw),sy=Math.floor((py-iy)*im.height/ih);
-  if(sx<0||sy<0||sx>=im.width||sy>=im.height)return;
+  if(sx<0||sy<0||sx>=im.width||sy>=im.height){document.getElementById("imageHint").textContent="O ponto selecionado ficou fora da imagem. Toque diretamente sobre a área colorida da imagem e tente novamente.";return;}
   const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});
   cv.width=im.width;cv.height=im.height;cx.drawImage(im,0,0);
   const d=cx.getImageData(0,0,im.width,im.height),p=d.data,w=im.width,h=im.height;
@@ -323,7 +323,7 @@ async function brushAt(clientX,clientY){
  const px=(clientX-rect.left)*600/rect.width,py=(clientY-rect.top)*420/rect.height;
  const im=await new Promise((resolve,reject)=>{const z=new Image();z.onload=()=>resolve(z);z.onerror=reject;z.src=pendingImageData;});
  const maxW=editingDraft.imageW||Number(document.getElementById("imageSize").value)||190,scale=Math.min(maxW/im.width,maxW/im.height),iw=im.width*scale,ih=im.height*scale;
- const ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??12,sx=Math.floor((px-ix)*im.width/iw),sy=Math.floor((py-iy)*im.height/ih);if(sx<0||sy<0||sx>=im.width||sy>=im.height)return;
+ const ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??(12+(190-ih)/2),sx=Math.floor((px-ix)*im.width/iw),sy=Math.floor((py-iy)*im.height/ih);if(sx<0||sy<0||sx>=im.width||sy>=im.height)return;
  const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});cv.width=im.width;cv.height=im.height;cx.drawImage(im,0,0);const d=cx.getImageData(0,0,im.width,im.height),p=d.data;
  if(!brushBaseData||brushBaseData.width!==im.width||brushBaseData.height!==im.height){const base=document.createElement("canvas"),bx=base.getContext("2d");base.width=im.width;base.height=im.height;const bi=await new Promise((resolve,reject)=>{const z=new Image();z.onload=()=>resolve(z);z.onerror=reject;z.src=pendingImageData;});bx.drawImage(bi,0,0);brushBaseData=bx.getImageData(0,0,im.width,im.height);}
  const base=brushBaseData.data,rad=Math.max(2,Number(document.getElementById("brushSize").value)||28)*im.width/600,rad2=rad*rad,tol=Number(document.getElementById("brushTolerance").value)||0,center=(sy*im.width+sx)*4,cr=base[center],cg=base[center+1],cb=base[center+2],minX=Math.max(0,Math.floor(sx-rad)),maxX=Math.min(im.width-1,Math.ceil(sx+rad)),minY=Math.max(0,Math.floor(sy-rad)),maxY=Math.min(im.height-1,Math.ceil(sy+rad));
@@ -338,7 +338,7 @@ editorCanvas.addEventListener("pointerdown",async e=>{
   try{
    const im=await new Promise((resolve,reject)=>{const z=new Image();z.onload=()=>resolve(z);z.onerror=reject;z.src=editingDraft.imageData;});
    const maxW=editingDraft.imageW||Number(document.getElementById("imageSize").value)||190,scale=Math.min(maxW/im.width,maxW/im.height),iw=im.width*scale,ih=im.height*scale;
-   const ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??12;
+   const ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??(12+(190-ih)/2);
    if(x>=ix-8&&x<=ix+iw+8&&y>=iy-8&&y<=iy+ih+8){dragStart={x,y,lx:ix,ly:iy,kind:"image"};editorCanvas.setPointerCapture(e.pointerId);return;}
   }catch(err){}
  }
