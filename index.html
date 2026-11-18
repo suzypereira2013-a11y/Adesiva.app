@@ -207,7 +207,7 @@ async function loadLibrary(){
  const removedIds=new Set(["fit-emoji-woman","fit-emoji-man","fit-emoji-lifter","fit-emoji-muscle","fit-kettlebell-svg","fit-bora-treinar-black","fit-mais-forca-black",...deletedStickerIds]);
  const byId=new Map();
  for(const list of sources)for(const item of list)if(item&&item.id!=null&&item.cat!=="Decorativos"&&!removedIds.has(item.id))byId.set(item.id,item);
- stickers=stickers.filter(s=>!removedIds.has(s.id)).map(s=>byId.has(s.id)?{...s,...byId.get(s.id)}:s);
+ stickers=stickers.filter(s=>!removedIds.has(s.id)).map(s=>byId.has(s.id)&&!fitnessCoreIds.includes(s.id)?{...s,...byId.get(s.id)}:s);
  for(const item of byId.values())if(!stickers.some(s=>s.id===item.id))stickers.unshift(item);
 }
 let activeCat="Todos";
