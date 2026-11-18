@@ -296,21 +296,13 @@ async function removeColorAt(clientX,clientY){
   if(p[seed+3]===0){document.getElementById("imageHint").textContent="Essa área já está transparente. Toque em uma parte colorida do fundo.";return;}
   const tolerance=Number(document.getElementById("brushTolerance").value)||0;
   const threshold=Math.max(12,tolerance*1.35),threshold2=threshold*threshold;
-  const seen=new Uint8Array(w*h),queue=new Int32Array(w*h);let head=0,tail=0;
-  const seedIndex=sy*w+sx;seen[seedIndex]=1;queue[tail++]=seedIndex;
-  while(head<tail){
-   const i=queue[head++],j=i*4;
+  let removed=0;
+  for(let i=0;i<w*h;i++){
+   const j=i*4;if(p[j+3]===0)continue;
    const dr=p[j]-cr,dg=p[j+1]-cg,db=p[j+2]-cb;
-   if(dr*dr+dg*dg+db*db<=threshold2){
-    p[j+3]=0;
-    const x=i%w,y=(i/w)|0;
-    if(x>0&&!seen[i-1]){seen[i-1]=1;queue[tail++]=i-1;}
-    if(x<w-1&&!seen[i+1]){seen[i+1]=1;queue[tail++]=i+1;}
-    if(y>0&&!seen[i-w]){seen[i-w]=1;queue[tail++]=i-w;}
-    if(y<h-1&&!seen[i+w]){seen[i+w]=1;queue[tail++]=i+w;}
-   }
+   if(dr*dr+dg*dg+db*db<=threshold2){p[j+3]=0;removed++;}
   }
-  if(tail===1){document.getElementById("imageHint").textContent="Não encontrei uma área conectada com essa cor. Aumente a tolerância e tente novamente.";return;}
+  if(!removed){document.getElementById("imageHint").textContent="Não encontrei pixels dessa cor. Aumente a tolerância e tente novamente.";return;}
   previousImageBeforeBgRemoval=pendingImageData;
   brushBaseData=new ImageData(new Uint8ClampedArray(d.data),w,h);
   cx.putImageData(d,0,0);pendingImageData=cv.toDataURL("image/png");editingDraft.imageData=pendingImageData;
