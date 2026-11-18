@@ -273,7 +273,7 @@ async function drawEditorPreview(){if(!editingDraft)return;await drawSticker(doc
 const editorCanvas=document.getElementById("editorCanvas");
 const colorTarget=document.getElementById("colorTarget");
 let colorTargetPoint=null;
-function updateColorTarget(clientX,clientY){const preview=editorCanvas.parentElement,rect=preview.getBoundingClientRect();colorTarget.style.left=(clientX-rect.left)+"px";colorTarget.style.top=(clientY-rect.top)+"px";colorTarget.classList.add("visible");const canvasRect=editorCanvas.getBoundingClientRect();colorTargetPoint={clientX,clientY};document.getElementById("applyColorTarget").disabled=false;}
+function updateColorTarget(clientX,clientY){const preview=editorCanvas.parentElement,rect=preview.getBoundingClientRect(),canvasRect=editorCanvas.getBoundingClientRect();colorTarget.style.left=(clientX-rect.left)+"px";colorTarget.style.top=(clientY-rect.top)+"px";colorTarget.classList.add("visible");colorTargetPoint={x:(clientX-canvasRect.left)*600/canvasRect.width,y:(clientY-canvasRect.top)*420/canvasRect.height};document.getElementById("applyColorTarget").disabled=false;}
 function hideColorTarget(){colorTarget.classList.remove("visible");colorTargetPoint=null;document.getElementById("applyColorTarget").disabled=true;}
 document.getElementById("brushMode").addEventListener("change",e=>{if(e.target.value!=="color")hideColorTarget();else document.getElementById("imageHint").textContent="Mova a mira sobre a cor do fundo e toque para apagar todas as áreas dessa cor.";});
 function syncLayer(){if(!editingDraft)return;const l=editingDraft.textLayers[selectedLayer];if(!l)return;l.text=document.getElementById("newText").value;l.font=document.getElementById("textFont").value;l.size=Number(document.getElementById("textSize").value);l.lineSpacing=Number(document.getElementById("lineSpacing").value);l.align=document.getElementById("textAlign").value;l.curve=Number(document.getElementById("textCurve").value);l.curveDirection=document.getElementById("curveDirection").value;document.getElementById("curveReadout").textContent=l.curve===0?"Reta":({up:"↑",down:"↓",right:"→",left:"←"}[l.curveDirection]+" "+l.curve+"%");l.color=document.getElementById("newColor").value;l.outline=document.getElementById("newOutline").value;l.outlineWidth=Number(document.getElementById("outlineWidth").value);l.shadowEnabled=document.getElementById("textShadow").checked;l.shadowColor=document.getElementById("shadowColor").value;l.shadowBlur=Number(document.getElementById("shadowBlur").value);l.shadowOffset=Number(document.getElementById("shadowOffset").value);editingDraft.text=l.text;editingDraft.imageData=document.getElementById("removeImage").checked?null:pendingImageData;drawEditorPreview();}
@@ -286,8 +286,7 @@ editorCanvas.style.touchAction="none";
 async function removeColorAt(clientX,clientY){
  if(!pendingImageData||!editingDraft)return;
  try{
-  const rect=editorCanvas.getBoundingClientRect();
-  const px=(clientX-rect.left)*600/rect.width,py=(clientY-rect.top)*420/rect.height;
+  const px=clientX,py=clientY;
   const im=await new Promise((resolve,reject)=>{const z=new Image();z.onload=()=>resolve(z);z.onerror=reject;z.src=pendingImageData;});
   const maxW=editingDraft.imageW||Number(document.getElementById("imageSize").value)||190;
   const scale=Math.min(maxW/im.width,maxW/im.height),iw=im.width*scale,ih=im.height*scale;
@@ -316,7 +315,7 @@ async function removeColorAt(clientX,clientY){
   await drawEditorPreview();
  }catch(err){document.getElementById("imageHint").textContent=err.message||"Não foi possível remover essa cor.";}
 }
-document.getElementById("applyColorTarget").onclick=async()=>{if(!colorTargetPoint||!pendingImageData)return;const point={...colorTargetPoint};await removeColorAt(point.clientX,point.clientY);};
+document.getElementById("applyColorTarget").onclick=async()=>{const hint=document.getElementById("imageHint");if(!pendingImageData){hint.textContent="Adicione uma imagem antes de selecionar a cor.";return;}if(!colorTargetPoint){hint.textContent="Toque primeiro na cor que deseja apagar, diretamente na imagem.";return;}const point={...colorTargetPoint};hint.textContent="Removendo a cor selecionada…";await removeColorAt(point.x,point.y);};
 async function brushAt(clientX,clientY){
  if(!pendingImageData||!editingDraft)return;
  const mode=document.getElementById("brushMode").value,rect=editorCanvas.getBoundingClientRect();
@@ -332,7 +331,7 @@ async function brushAt(clientX,clientY){
 }
 editorCanvas.addEventListener("pointerdown",async e=>{
  if(!editingDraft)return;
- if(pendingImageData&&document.getElementById("brushMode").value==="color"){updateColorTarget(e.clientX,e.clientY);editorCanvas.setPointerCapture(e.pointerId);document.getElementById("imageHint").textContent="Mira posicionada. Confira o alvo na imagem e toque em “Apagar cor selecionada” para aplicar.";return;}if(pendingImageData&&document.getElementById("brushMode").value!=="move"){brushStrokeActive=true;editorCanvas.setPointerCapture(e.pointerId);await brushAt(e.clientX,e.clientY);return;}
+ if(pendingImageData&&document.getElementById("brushMode").value==="color"){e.preventDefault();updateColorTarget(e.clientX,e.clientY);document.getElementById("imageHint").textContent="Cor selecionada. Agora toque em “Apagar cor selecionada”.";return;}if(pendingImageData&&document.getElementById("brushMode").value!=="move"){brushStrokeActive=true;editorCanvas.setPointerCapture(e.pointerId);await brushAt(e.clientX,e.clientY);return;}
  const r=editorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)*600/r.width,y=(e.clientY-r.top)*420/r.height;
  if(editingDraft.imageData&&!document.getElementById("removeImage").checked){
   try{
@@ -345,7 +344,7 @@ editorCanvas.addEventListener("pointerdown",async e=>{
  syncLayer();const l=editingDraft.textLayers[selectedLayer];if(!l)return;
  dragStart={x,y,lx:l.x??300,ly:l.y??228,kind:"text"};editorCanvas.setPointerCapture(e.pointerId);
 });
-editorCanvas.addEventListener("pointermove",e=>{if(document.getElementById("brushMode").value==="color"&&pendingImageData){updateColorTarget(e.clientX,e.clientY);return;}if(brushStrokeActive){brushAt(e.clientX,e.clientY);return;}if(!dragStart||!editingDraft)return;const r=editorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)*600/r.width,y=(e.clientY-r.top)*420/r.height,dx=x-dragStart.x,dy=y-dragStart.y;if(dragStart.kind==="text"){const l=editingDraft.textLayers[selectedLayer];if(!l)return;l.x=Math.max(0,Math.min(600,dragStart.lx+dx));l.y=Math.max(0,Math.min(420,dragStart.ly+dy));}else if(dragStart.kind==="image"){editingDraft.imageX=Math.max(-300,Math.min(600,dragStart.lx+dx));editingDraft.imageY=Math.max(-300,Math.min(420,dragStart.ly+dy));}drawEditorPreview();});
+editorCanvas.addEventListener("pointermove",e=>{if(brushStrokeActive){brushAt(e.clientX,e.clientY);return;}if(!dragStart||!editingDraft)return;const r=editorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)*600/r.width,y=(e.clientY-r.top)*420/r.height,dx=x-dragStart.x,dy=y-dragStart.y;if(dragStart.kind==="text"){const l=editingDraft.textLayers[selectedLayer];if(!l)return;l.x=Math.max(0,Math.min(600,dragStart.lx+dx));l.y=Math.max(0,Math.min(420,dragStart.ly+dy));}else if(dragStart.kind==="image"){editingDraft.imageX=Math.max(-300,Math.min(600,dragStart.lx+dx));editingDraft.imageY=Math.max(-300,Math.min(420,dragStart.ly+dy));}drawEditorPreview();});
 editorCanvas.addEventListener("pointerup",()=>{dragStart=null;brushStrokeActive=false;});editorCanvas.addEventListener("pointercancel",()=>{dragStart=null;brushStrokeActive=false;});
 document.getElementById("removeBg").onclick=async()=>{
  if(!pendingImageData){statusEl.textContent="Adicione uma imagem primeiro.";return;}
