@@ -273,7 +273,7 @@ async function drawEditorPreview(){if(!editingDraft)return;await drawSticker(doc
 const editorCanvas=document.getElementById("editorCanvas");
 const colorTarget=document.getElementById("colorTarget");
 let colorTargetPoint=null;
-function updateColorTarget(clientX,clientY){const preview=editorCanvas.parentElement,rect=preview.getBoundingClientRect();colorTarget.style.left=(clientX-rect.left)+"px";colorTarget.style.top=(clientY-rect.top)+"px";colorTarget.classList.add("visible");colorTargetPoint={x:(clientX-rect.left)/rect.width,y:(clientY-rect.top)/rect.height};document.getElementById("applyColorTarget").disabled=false;}
+function updateColorTarget(clientX,clientY){const preview=editorCanvas.parentElement,rect=preview.getBoundingClientRect();colorTarget.style.left=(clientX-rect.left)+"px";colorTarget.style.top=(clientY-rect.top)+"px";colorTarget.classList.add("visible");const canvasRect=editorCanvas.getBoundingClientRect();colorTargetPoint={clientX,clientY};document.getElementById("applyColorTarget").disabled=false;}
 function hideColorTarget(){colorTarget.classList.remove("visible");colorTargetPoint=null;document.getElementById("applyColorTarget").disabled=true;}
 document.getElementById("brushMode").addEventListener("change",e=>{if(e.target.value!=="color")hideColorTarget();else document.getElementById("imageHint").textContent="Mova a mira sobre a cor do fundo e toque para apagar todas as áreas dessa cor.";});
 function syncLayer(){if(!editingDraft)return;const l=editingDraft.textLayers[selectedLayer];if(!l)return;l.text=document.getElementById("newText").value;l.font=document.getElementById("textFont").value;l.size=Number(document.getElementById("textSize").value);l.lineSpacing=Number(document.getElementById("lineSpacing").value);l.align=document.getElementById("textAlign").value;l.curve=Number(document.getElementById("textCurve").value);l.curveDirection=document.getElementById("curveDirection").value;document.getElementById("curveReadout").textContent=l.curve===0?"Reta":({up:"↑",down:"↓",right:"→",left:"←"}[l.curveDirection]+" "+l.curve+"%");l.color=document.getElementById("newColor").value;l.outline=document.getElementById("newOutline").value;l.outlineWidth=Number(document.getElementById("outlineWidth").value);l.shadowEnabled=document.getElementById("textShadow").checked;l.shadowColor=document.getElementById("shadowColor").value;l.shadowBlur=Number(document.getElementById("shadowBlur").value);l.shadowOffset=Number(document.getElementById("shadowOffset").value);editingDraft.text=l.text;editingDraft.imageData=document.getElementById("removeImage").checked?null:pendingImageData;drawEditorPreview();}
@@ -312,11 +312,11 @@ async function removeColorAt(clientX,clientY){
   brushBaseData=new ImageData(new Uint8ClampedArray(d.data),w,h);
   cx.putImageData(d,0,0);pendingImageData=cv.toDataURL("image/png");editingDraft.imageData=pendingImageData;
   document.getElementById("removeImage").checked=false;document.getElementById("undoBg").disabled=false;
-  document.getElementById("imageHint").textContent="Cor selecionada removida em "+(tail-1).toLocaleString("pt-BR")+" pixels. Use Desfazer se necessário.";
+  document.getElementById("imageHint").textContent="Cor selecionada removida em "+removed.toLocaleString("pt-BR")+" pixels. Use Desfazer se necessário.";
   await drawEditorPreview();
  }catch(err){document.getElementById("imageHint").textContent=err.message||"Não foi possível remover essa cor.";}
 }
-document.getElementById("applyColorTarget").onclick=async()=>{if(!colorTargetPoint||!pendingImageData)return;const rect=editorCanvas.getBoundingClientRect();const x=rect.left+colorTargetPoint.x*rect.width,y=rect.top+colorTargetPoint.y*rect.height;await removeColorAt(x,y);};
+document.getElementById("applyColorTarget").onclick=async()=>{if(!colorTargetPoint||!pendingImageData)return;const point={...colorTargetPoint};await removeColorAt(point.clientX,point.clientY);};
 async function brushAt(clientX,clientY){
  if(!pendingImageData||!editingDraft)return;
  const mode=document.getElementById("brushMode").value,rect=editorCanvas.getBoundingClientRect();
