@@ -94,6 +94,16 @@ function fitnessSvg(kind){
 }
 function fitnessSvgData(kind){return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(fitnessSvg(kind));}
 
+function fitnessPhraseSvg(kind){
+ const dumbbell='<g transform="translate(0 4)" stroke="#ffffff" stroke-width="12" stroke-linejoin="round"><rect x="205" y="92" width="190" height="22" rx="11" fill="#f3f3f3"/><rect x="150" y="55" width="58" height="96" rx="15" fill="#f28ab8"/><rect x="392" y="55" width="58" height="96" rx="15" fill="#f28ab8"/><rect x="125" y="70" width="28" height="66" rx="9" fill="#ffffff"/><rect x="447" y="70" width="28" height="66" rx="9" fill="#ffffff"/></g>';
+ const phrase=kind==="bora"?'Bora treinar':'Mais força, por favor';
+ const fontSize=kind==="bora"?66:52;
+ const y=kind==="bora"?270:278;
+ return '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420"><rect x="24" y="24" width="552" height="372" rx="58" fill="#101010" stroke="#ffffff" stroke-width="9"/>'+dumbbell+'<text x="300" y="'+y+'" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="'+fontSize+'" font-weight="800" letter-spacing="1">'+phrase+'</text></svg>';
+}
+function fitnessPhraseData(kind){return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(fitnessPhraseSvg(kind));}
+
+
 let stickers = [
  {id:1,name:"Jesus cuida de mim",text:"Jesus cuida de mim",emoji:"♡",cat:"Frases",color:"#171717",outline:"#ffffff",font:"script"},
  {id:2,name:"Ore sem cessar",text:"Ore sem cessar",emoji:"✨",cat:"Frases",color:"#171717",outline:"#ffffff",font:"serif"},
@@ -150,6 +160,9 @@ let stickers = [
  {id:"fit-dumbbell-pink-svg",name:"Halter rosa",text:"",cat:"Fitness",imageData:fitnessSvgData("pink"),imageW:350,imageX:125,imageY:0,textLayers:[]},
  {id:"fit-dumbbell-black-svg",name:"Halter preto",text:"",cat:"Fitness",imageData:fitnessSvgData("black"),imageW:350,imageX:125,imageY:0,textLayers:[]},
  {id:"fit-dumbbells-pair-svg",name:"Par de halteres",text:"",cat:"Fitness",imageData:fitnessSvgData("pair"),imageW:370,imageX:115,imageY:0,textLayers:[]},
+
+ {id:"fit-bora-treinar-black",name:"Bora treinar — halter",text:"",cat:"Fitness",imageData:fitnessPhraseData("bora"),imageW:390,imageX:105,imageY:0,textLayers:[]},
+ {id:"fit-mais-forca-black",name:"Mais força, por favor — halter",text:"",cat:"Fitness",imageData:fitnessPhraseData("forca"),imageW:390,imageX:105,imageY:0,textLayers:[]},
  {id:"month-1",name:"Janeiro",text:"Janeiro",cat:"Meses do ano",color:"#171717",font:"sans",size:64},
  {id:"month-2",name:"Fevereiro",text:"Fevereiro",cat:"Meses do ano",color:"#171717",font:"sans",size:64},
  {id:"month-3",name:"Março",text:"Março",cat:"Meses do ano",color:"#171717",font:"sans",size:64},
