@@ -330,21 +330,25 @@ async function restoreColorAtTarget(clientX,clientY){
   if(base.width!==w||base.height!==h){hint.textContent="A referência original não corresponde à imagem atual. Use Desfazer e tente novamente.";return;}
   const maxW=editingDraft.imageW||Number(document.getElementById("imageSize").value)||190,scale=Math.min(maxW/im.width,maxW/im.height),iw=im.width*scale,ih=im.height*scale,ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??(12+(190-ih)/2);
   const sx=Math.floor((clientX-ix)*w/iw),sy=Math.floor((clientY-iy)*h/ih);
-  if(sx<0||sy<0||sx>=w||sy>=h){hint.textContent="Toque dentro da imagem, na região que deseja recuperar.";return;}
+  if(sx<0||sy<0||sx>=w||sy>=h){hint.textContent="Toque dentro da imagem, na região da cor que deseja recuperar.";return;}
   const bd=base.data,seed=(sy*w+sx)*4;
-  if(bd[seed+3]===0){hint.textContent="Essa área não tinha cor na imagem original.";return;}
-  const tol=Number(document.getElementById("brushTolerance").value)||0,threshold=Math.max(12,tol*1.35),t2=threshold*threshold,cr=bd[seed],cg=bd[seed+1],cb=bd[seed+2];
+  if(bd[seed+3]===0){hint.textContent="Esse ponto era transparente na imagem original. Toque em uma área da cor que deseja recuperar.";return;}
+  const tol=Number(document.getElementById("brushTolerance").value)||0;
+  // Comparação global, não apenas por vizinhança: recupera também falhas e pequenas ilhas da mesma cor.
+  const threshold=Math.max(16,tol*1.35),t2=threshold*threshold,cr=bd[seed],cg=bd[seed+1],cb=bd[seed+2];
   const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});cv.width=w;cv.height=h;cx.drawImage(im,0,0);
-  const d=cx.getImageData(0,0,w,h),p=d.data,seen=new Uint8Array(w*h),stack=[sy*w+sx];let restored=0;
-  while(stack.length){
-   const pos=stack.pop();if(pos<0||pos>=w*h||seen[pos])continue;seen[pos]=1;
+  const d=cx.getImageData(0,0,w,h),p=d.data;let restored=0;
+  for(let pos=0;pos<w*h;pos++){
    const j=pos*4;if(bd[j+3]===0)continue;
-   const dr=bd[j]-cr,dg=bd[j+1]-cg,db=bd[j+2]-cb;if(dr*dr+dg*dg+db*db>t2)continue;
-   if(p[j+3]!==bd[j+3]||p[j]!==bd[j]||p[j+1]!==bd[j+1]||p[j+2]!==bd[j+2]){p[j]=bd[j];p[j+1]=bd[j+1];p[j+2]=bd[j+2];p[j+3]=bd[j+3];restored++;}
-   const x=pos%w,y=Math.floor(pos/w);if(x>0)stack.push(pos-1);if(x<w-1)stack.push(pos+1);if(y>0)stack.push(pos-w);if(y<h-1)stack.push(pos+w);
+   const dr=bd[j]-cr,dg=bd[j+1]-cg,db=bd[j+2]-cb;
+   if(dr*dr+dg*dg+db*db>t2)continue;
+   if(p[j+3]!==bd[j+3]||p[j]!==bd[j]||p[j+1]!==bd[j+1]||p[j+2]!==bd[j+2]){
+    p[j]=bd[j];p[j+1]=bd[j+1];p[j+2]=bd[j+2];p[j+3]=bd[j+3];restored++;
+   }
   }
-  if(!restored){hint.textContent="Não encontrei área apagada dessa cor conectada ao ponto escolhido.";return;}
-  cx.putImageData(d,0,0);pendingImageData=cv.toDataURL("image/png");editingDraft.imageData=pendingImageData;document.getElementById("removeImage").checked=false;hint.textContent="Região restaurada: "+restored.toLocaleString("pt-BR")+" pixels. Somente a área conectada à cor selecionada foi recuperada.";await drawEditorPreview();
+  if(!restored){hint.textContent="Não encontrei partes apagadas dessa cor. Toque em outra região da cor original ou ajuste a tolerância.";return;}
+  cx.putImageData(d,0,0);pendingImageData=cv.toDataURL("image/png");editingDraft.imageData=pendingImageData;document.getElementById("removeImage").checked=false;
+  hint.textContent="Cor recuperada em "+restored.toLocaleString("pt-BR")+" pixels, incluindo partes separadas da imagem. A restauração alcança todas as áreas com cor semelhante à selecionada.";await drawEditorPreview();
  }catch(err){hint.textContent=err.message||"Não foi possível restaurar essa cor.";}
 }
 document.getElementById("restoreColorTarget").onclick=async()=>{const hint=document.getElementById("imageHint");if(!colorTargetPoint){hint.textContent="Toque primeiro na região que deseja restaurar.";return;}const point={...colorTargetPoint};hint.textContent="Restaurando a região selecionada…";await restoreColorAtTarget(point.x,point.y);};
