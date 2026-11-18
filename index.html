@@ -298,6 +298,10 @@ async function removeColorAt(clientX,clientY){
   const d=cx.getImageData(0,0,im.width,im.height),p=d.data,w=im.width,h=im.height;
   const seed=(sy*w+sx)*4,cr=p[seed],cg=p[seed+1],cb=p[seed+2];
   if(p[seed+3]===0){document.getElementById("imageHint").textContent="Essa área já está transparente. Toque em uma parte colorida do fundo.";return;}
+  // Preserve a imagem intacta como referência para o pincel restaurar pixels apagados pelo alvo.
+  if(!brushBaseData||brushBaseData.width!==w||brushBaseData.height!==h){
+   brushBaseData=new ImageData(new Uint8ClampedArray(p),w,h);
+  }
   const tolerance=Number(document.getElementById("brushTolerance").value)||0;
   const threshold=Math.max(12,tolerance*1.35),threshold2=threshold*threshold;
   let removed=0;
@@ -308,7 +312,7 @@ async function removeColorAt(clientX,clientY){
   }
   if(!removed){document.getElementById("imageHint").textContent="Não encontrei pixels dessa cor. Aumente a tolerância e tente novamente.";return;}
   previousImageBeforeBgRemoval=pendingImageData;
-  brushBaseData=new ImageData(new Uint8ClampedArray(d.data),w,h);
+  // Não sobrescrever brushBaseData com a versão transparente: ela precisa manter os pixels originais.
   cx.putImageData(d,0,0);pendingImageData=cv.toDataURL("image/png");editingDraft.imageData=pendingImageData;
   document.getElementById("removeImage").checked=false;document.getElementById("undoBg").disabled=false;
   document.getElementById("imageHint").textContent="Cor selecionada removida em "+removed.toLocaleString("pt-BR")+" pixels. Use Desfazer se necessário.";
