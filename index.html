@@ -310,15 +310,29 @@ document.getElementById("removeBg").onclick=async()=>{
   const tolerance=78;
   function similar(j){const r=p[j],g=p[j+1],b=p[j+2];let min=1e9;for(const s of edgeSamples){const dr=r-s[0],dg=g-s[1],db=b-s[2];const dist=dr*dr+dg*dg+db*db;if(dist<min)min=dist;}const dr=r-bg[0],dg=g-bg[1],db=b-bg[2];return min<tolerance*tolerance*3||dr*dr+dg*dg+db*db<tolerance*tolerance*2;}
   function add(i){if(i<0||i>=w*h||seen[i])return;const j=i*4;if(p[j+3]>0&&similar(j)){seen[i]=1;queue[tail++]=i;}}
+  // Primeiro remove o fundo conectado às bordas.
   for(let x=0;x<w;x++){add(x);add((h-1)*w+x);}
   for(let y=0;y<h;y++){add(y*w);add(y*w+w-1);}
-  while(head<tail){const i=queue[head++];const j=i*4;p[j+3]=0;const x=i%w,y=(i/w)|0;if(x)add(i-1);if(x<w-1)add(i+1);if(y)add(i-w);if(y<h-1)add(i+w);}
+  function clearQueue(){
+   while(head<tail){const i=queue[head++];const j=i*4;p[j+3]=0;const x=i%w,y=(i/w)|0;if(x)add(i-1);if(x<w-1)add(i+1);if(y)add(i-w);if(y<h-1)add(i+w);}
+  }
+  clearQueue();
+  // Segunda passada: encontra ilhas internas da mesma cor do fundo,
+  // como os espaços fechados dentro de letras e pequenos caracteres.
+  for(let i=0;i<w*h;i++){
+   if(seen[i])continue;
+   const j=i*4;
+   if(p[j+3]===0)continue;
+   const dr=p[j]-bg[0],dg=p[j+1]-bg[1],db=p[j+2]-bg[2];
+   if(dr*dr+dg*dg+db*db<tolerance*tolerance*2)add(i);
+   if(tail>head)clearQueue();
+  }
   cx.putImageData(d,0,0);
   previousImageBeforeBgRemoval=pendingImageData;
   pendingImageData=cv.toDataURL("image/png");editingDraft.imageData=pendingImageData;
   document.getElementById("removeImage").checked=false;
   document.getElementById("undoBg").disabled=false;
-  document.getElementById("imageHint").textContent="Fundo conectado às bordas removido. Se necessário, toque em Desfazer para restaurar.";
+  document.getElementById("imageHint").textContent="Fundo externo e áreas internas semelhantes ao fundo removidos. Confira os detalhes; use Desfazer se necessário.";
   drawEditorPreview();statusEl.textContent="Remoção aplicada. Você pode desfazer.";
  }catch(e){statusEl.textContent=e.message||"Não foi possível remover o fundo desta imagem.";}
 };
