@@ -69,7 +69,7 @@
   <label class="field" style="display:flex;align-items:center;gap:8px"><input id="removeImage" type="checkbox" style="width:auto"> Remover imagem deste adesivo</label>
   <p id="imageHint" class="notice">Você pode escolher uma foto, ilustração ou PNG da sua galeria.</p>
   <div style="display:flex;gap:8px"><button type="button" id="removeBg" class="dialogbuttons" style="flex:1;justify-content:center">✂ Remover fundo</button><button type="button" id="undoBg" class="dialogbuttons" style="flex:1;justify-content:center" disabled>↶ Desfazer remoção</button></div>
-  <div class="curve-panel"><strong>✎ Refinar com pincel</strong><label class="field"><span>Ferramenta</span><select id="brushMode"><option value="move">Mover imagem/texto</option><option value="erase">Apagar fundo com pincel</option><option value="restore">Restaurar com pincel</option></select></label><label class="field"><span>Tamanho do pincel</span><input id="brushSize" type="range" min="4" max="90" value="28"></label><label class="field"><span>Tolerância de cor</span><input id="brushTolerance" type="range" min="0" max="180" value="70"></label><p class="notice" style="margin:4px 0">Toque e arraste sobre a imagem para apagar ou recuperar partes. A tolerância controla quais cores o pincel alcança.</p></div>
+  <div class="curve-panel"><strong>✎ Refinar com pincel</strong><label class="field"><span>Ferramenta</span><select id="brushMode"><option value="move">Mover imagem/texto</option><option value="color">◎ Selecionar cor e apagar fundo</option><option value="erase">Apagar fundo com pincel</option><option value="restore">Restaurar com pincel</option></select></label><label class="field"><span>Tamanho do pincel</span><input id="brushSize" type="range" min="4" max="90" value="28"></label><label class="field"><span>Tolerância de cor</span><input id="brushTolerance" type="range" min="0" max="180" value="70"></label><p class="notice" style="margin:4px 0">Escolha “Selecionar cor e apagar fundo” e toque na cor do fundo na imagem: todas as áreas conectadas daquela cor serão removidas de uma vez. Ajuste a tolerância para incluir tons parecidos. O pincel continua disponível para retoques.</p></div>
   <p class="notice">A remoção automática funciona melhor em fundos lisos. Use o pincel para corrigir letras, bordas e detalhes preservados ou apagados por engano.</p>
   <label class="field"><span>Cor do texto</span><input id="newColor" type="color" value="#171717"></label>
   <label class="field"><span>Cor do contorno</span><input id="newOutline" type="color" value="#171717"></label>
@@ -278,6 +278,47 @@ document.getElementById("addText").onclick=()=>{syncLayer();editingDraft.textLay
 document.getElementById("deleteText").onclick=()=>{if(editingDraft.textLayers.length<=1){editingDraft.textLayers[0].text="";}else{editingDraft.textLayers.splice(selectedLayer,1);selectedLayer=Math.max(0,selectedLayer-1);}loadLayerControls();drawEditorPreview();};
 function loadLayerControls(){const sel=document.getElementById("layerSelect");sel.innerHTML="";editingDraft.textLayers.forEach((layer,i)=>{const opt=document.createElement("option");opt.value=String(i);opt.textContent="Texto "+(i+1)+(layer.text?" — "+layer.text.slice(0,18):"");sel.append(opt);});sel.value=String(selectedLayer);const l=editingDraft.textLayers[selectedLayer]||{};document.getElementById("newText").value=l.text||"";document.getElementById("textFont").value=l.font||"script";document.getElementById("textSize").value=l.size||54;document.getElementById("lineSpacing").value=l.lineSpacing||1.2;document.getElementById("textAlign").value=l.align||"center";document.getElementById("textCurve").value=Math.abs(l.curve||0);document.getElementById("curveDirection").value=l.curveDirection||(l.curve<0?"down":"up");document.getElementById("curveReadout").textContent=(l.curve||0)===0?"Reta":({up:"↑",down:"↓",right:"→",left:"←"}[l.curveDirection||(l.curve<0?"down":"up")]+" "+Math.abs(l.curve)+"%");document.getElementById("newColor").value=l.color||"#ffffff";document.getElementById("newOutline").value=l.outline||"#ffffff";document.getElementById("outlineWidth").value=l.outlineWidth??6;document.getElementById("textShadow").checked=!!l.shadowEnabled;document.getElementById("shadowColor").value=l.shadowColor||"#765365";document.getElementById("shadowBlur").value=l.shadowBlur??8;document.getElementById("shadowOffset").value=l.shadowOffset??5;}
 editorCanvas.style.touchAction="none";
+async function removeColorAt(clientX,clientY){
+ if(!pendingImageData||!editingDraft)return;
+ try{
+  const rect=editorCanvas.getBoundingClientRect();
+  const px=(clientX-rect.left)*600/rect.width,py=(clientY-rect.top)*420/rect.height;
+  const im=await new Promise((resolve,reject)=>{const z=new Image();z.onload=()=>resolve(z);z.onerror=reject;z.src=pendingImageData;});
+  const maxW=editingDraft.imageW||Number(document.getElementById("imageSize").value)||190;
+  const scale=Math.min(maxW/im.width,maxW/im.height),iw=im.width*scale,ih=im.height*scale;
+  const ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??12;
+  const sx=Math.floor((px-ix)*im.width/iw),sy=Math.floor((py-iy)*im.height/ih);
+  if(sx<0||sy<0||sx>=im.width||sy>=im.height)return;
+  const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});
+  cv.width=im.width;cv.height=im.height;cx.drawImage(im,0,0);
+  const d=cx.getImageData(0,0,im.width,im.height),p=d.data,w=im.width,h=im.height;
+  const seed=(sy*w+sx)*4,cr=p[seed],cg=p[seed+1],cb=p[seed+2];
+  if(p[seed+3]===0){document.getElementById("imageHint").textContent="Essa área já está transparente. Toque em uma parte colorida do fundo.";return;}
+  const tolerance=Number(document.getElementById("brushTolerance").value)||0;
+  const threshold=Math.max(12,tolerance*1.35),threshold2=threshold*threshold;
+  const seen=new Uint8Array(w*h),queue=new Int32Array(w*h);let head=0,tail=0;
+  const seedIndex=sy*w+sx;seen[seedIndex]=1;queue[tail++]=seedIndex;
+  while(head<tail){
+   const i=queue[head++],j=i*4;
+   const dr=p[j]-cr,dg=p[j+1]-cg,db=p[j+2]-cb;
+   if(dr*dr+dg*dg+db*db<=threshold2){
+    p[j+3]=0;
+    const x=i%w,y=(i/w)|0;
+    if(x>0&&!seen[i-1]){seen[i-1]=1;queue[tail++]=i-1;}
+    if(x<w-1&&!seen[i+1]){seen[i+1]=1;queue[tail++]=i+1;}
+    if(y>0&&!seen[i-w]){seen[i-w]=1;queue[tail++]=i-w;}
+    if(y<h-1&&!seen[i+w]){seen[i+w]=1;queue[tail++]=i+w;}
+   }
+  }
+  if(tail===1){document.getElementById("imageHint").textContent="Não encontrei uma área conectada com essa cor. Aumente a tolerância e tente novamente.";return;}
+  previousImageBeforeBgRemoval=pendingImageData;
+  brushBaseData=new ImageData(new Uint8ClampedArray(d.data),w,h);
+  cx.putImageData(d,0,0);pendingImageData=cv.toDataURL("image/png");editingDraft.imageData=pendingImageData;
+  document.getElementById("removeImage").checked=false;document.getElementById("undoBg").disabled=false;
+  document.getElementById("imageHint").textContent="Cor selecionada removida em "+(tail-1).toLocaleString("pt-BR")+" pixels. Use Desfazer se necessário.";
+  await drawEditorPreview();
+ }catch(err){document.getElementById("imageHint").textContent=err.message||"Não foi possível remover essa cor.";}
+}
 async function brushAt(clientX,clientY){
  if(!pendingImageData||!editingDraft)return;
  const mode=document.getElementById("brushMode").value,rect=editorCanvas.getBoundingClientRect();
@@ -293,7 +334,7 @@ async function brushAt(clientX,clientY){
 }
 editorCanvas.addEventListener("pointerdown",async e=>{
  if(!editingDraft)return;
- if(pendingImageData&&document.getElementById("brushMode").value!=="move"){brushStrokeActive=true;editorCanvas.setPointerCapture(e.pointerId);await brushAt(e.clientX,e.clientY);return;}
+ if(pendingImageData&&document.getElementById("brushMode").value==="color"){editorCanvas.setPointerCapture(e.pointerId);await removeColorAt(e.clientX,e.clientY);return;}if(pendingImageData&&document.getElementById("brushMode").value!=="move"){brushStrokeActive=true;editorCanvas.setPointerCapture(e.pointerId);await brushAt(e.clientX,e.clientY);return;}
  const r=editorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)*600/r.width,y=(e.clientY-r.top)*420/r.height;
  if(editingDraft.imageData&&!document.getElementById("removeImage").checked){
   try{
