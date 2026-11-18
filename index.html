@@ -262,8 +262,21 @@ document.getElementById("addText").onclick=()=>{syncLayer();editingDraft.textLay
 document.getElementById("deleteText").onclick=()=>{if(editingDraft.textLayers.length<=1){editingDraft.textLayers[0].text="";}else{editingDraft.textLayers.splice(selectedLayer,1);selectedLayer=Math.max(0,selectedLayer-1);}loadLayerControls();drawEditorPreview();};
 function loadLayerControls(){const sel=document.getElementById("layerSelect");sel.innerHTML="";editingDraft.textLayers.forEach((layer,i)=>{const opt=document.createElement("option");opt.value=String(i);opt.textContent="Texto "+(i+1)+(layer.text?" — "+layer.text.slice(0,18):"");sel.append(opt);});sel.value=String(selectedLayer);const l=editingDraft.textLayers[selectedLayer]||{};document.getElementById("newText").value=l.text||"";document.getElementById("textFont").value=l.font||"script";document.getElementById("textSize").value=l.size||54;document.getElementById("lineSpacing").value=l.lineSpacing||1.2;document.getElementById("textAlign").value=l.align||"center";document.getElementById("textCurve").value=Math.abs(l.curve||0);document.getElementById("curveDirection").value=l.curveDirection||(l.curve<0?"down":"up");document.getElementById("curveReadout").textContent=(l.curve||0)===0?"Reta":({up:"↑",down:"↓",right:"→",left:"←"}[l.curveDirection||(l.curve<0?"down":"up")]+" "+Math.abs(l.curve)+"%");document.getElementById("newColor").value=l.color||"#ffffff";document.getElementById("newOutline").value=l.outline||"#ffffff";document.getElementById("outlineWidth").value=l.outlineWidth??6;document.getElementById("textShadow").checked=!!l.shadowEnabled;document.getElementById("shadowColor").value=l.shadowColor||"#765365";document.getElementById("shadowBlur").value=l.shadowBlur??8;document.getElementById("shadowOffset").value=l.shadowOffset??5;}
 editorCanvas.style.touchAction="none";
-editorCanvas.addEventListener("pointerdown",e=>{if(!editingDraft)return;syncLayer();const r=editorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)*600/r.width,y=(e.clientY-r.top)*420/r.height,l=editingDraft.textLayers[selectedLayer];if(!l)return;dragStart={x,y,lx:l.x??300,ly:l.y??228,kind:"text"};editorCanvas.setPointerCapture(e.pointerId);});
-editorCanvas.addEventListener("pointermove",e=>{if(!dragStart||!editingDraft)return;const r=editorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)*600/r.width,y=(e.clientY-r.top)*420/r.height,dx=x-dragStart.x,dy=y-dragStart.y;if(dragStart.kind==="text"){const l=editingDraft.textLayers[selectedLayer];if(!l)return;l.x=Math.max(0,Math.min(600,dragStart.lx+dx));l.y=Math.max(0,Math.min(420,dragStart.ly+dy));}drawEditorPreview();});
+editorCanvas.addEventListener("pointerdown",async e=>{
+ if(!editingDraft)return;
+ const r=editorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)*600/r.width,y=(e.clientY-r.top)*420/r.height;
+ if(editingDraft.imageData&&!document.getElementById("removeImage").checked){
+  try{
+   const im=await new Promise((resolve,reject)=>{const z=new Image();z.onload=()=>resolve(z);z.onerror=reject;z.src=editingDraft.imageData;});
+   const maxW=editingDraft.imageW||Number(document.getElementById("imageSize").value)||190,scale=Math.min(maxW/im.width,maxW/im.height),iw=im.width*scale,ih=im.height*scale;
+   const ix=editingDraft.imageX??(600-iw)/2,iy=editingDraft.imageY??12;
+   if(x>=ix-8&&x<=ix+iw+8&&y>=iy-8&&y<=iy+ih+8){dragStart={x,y,lx:ix,ly:iy,kind:"image"};editorCanvas.setPointerCapture(e.pointerId);return;}
+  }catch(err){}
+ }
+ syncLayer();const l=editingDraft.textLayers[selectedLayer];if(!l)return;
+ dragStart={x,y,lx:l.x??300,ly:l.y??228,kind:"text"};editorCanvas.setPointerCapture(e.pointerId);
+});
+editorCanvas.addEventListener("pointermove",e=>{if(!dragStart||!editingDraft)return;const r=editorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)*600/r.width,y=(e.clientY-r.top)*420/r.height,dx=x-dragStart.x,dy=y-dragStart.y;if(dragStart.kind==="text"){const l=editingDraft.textLayers[selectedLayer];if(!l)return;l.x=Math.max(0,Math.min(600,dragStart.lx+dx));l.y=Math.max(0,Math.min(420,dragStart.ly+dy));}else if(dragStart.kind==="image"){editingDraft.imageX=Math.max(-300,Math.min(600,dragStart.lx+dx));editingDraft.imageY=Math.max(-300,Math.min(420,dragStart.ly+dy));}drawEditorPreview();});
 editorCanvas.addEventListener("pointerup",()=>{dragStart=null;});editorCanvas.addEventListener("pointercancel",()=>{dragStart=null;});
 document.getElementById("removeBg").onclick=async()=>{
  if(!pendingImageData){statusEl.textContent="Adicione uma imagem primeiro.";return;}
