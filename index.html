@@ -265,7 +265,7 @@ async function loadLibrary(){
  const fitnessCoreIds=["fit-focus","fit-treininho","fit-endorfinada","fit-bomdia-treino","fit-terapia","fit-topico","fit-pular","fit-vibe","fit-corpo","fit-foto","fit-pago"];
  let restoredFitness=false;for(const id of fitnessCoreIds)if(deletedStickerIds.delete(id))restoredFitness=true;
  if(restoredFitness){try{localStorage.setItem("adesiva-deleted-stickers",JSON.stringify([...deletedStickerIds]));}catch(e){}}
- const protectedGreetingIds=new Set(stickers.filter(item=>String(item.id).startsWith("greet-reference-")).map(item=>item.id));
+ const protectedGreetingIds=new Set(stickers.filter(item=>String(item.id).startsWith("greet-reference-")||String(item.id).startsWith("christian-reference-")).map(item=>item.id));
  const removedIds=new Set(["fit-emoji-woman","fit-emoji-man","fit-emoji-lifter","fit-emoji-muscle","fit-kettlebell-svg","fit-bora-treinar-black","fit-mais-forca-black",...[...deletedStickerIds].filter(id=>!protectedGreetingIds.has(id))]);
  const byId=new Map();
  for(const list of sources)for(const item of list)if(item&&item.id!=null&&item.cat!=="Decorativos"&&!removedIds.has(item.id))byId.set(item.id,item);
